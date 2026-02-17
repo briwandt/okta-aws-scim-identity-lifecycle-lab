@@ -101,6 +101,10 @@ Automatic provisioning enabled in AWS IAM Identity Center:
 
 
 ### ✅ User Provisioning
+User provisioned automatically via SCIM:
+
+![User Created via SCIM](images/aws-user-created-scim.png)
+
 
 Steps performed:
 
