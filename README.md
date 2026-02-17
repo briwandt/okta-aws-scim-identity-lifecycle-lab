@@ -19,7 +19,7 @@ This lab simulates a real-world enterprise implementation of centralized identit
 ```mermaid
 flowchart LR
   User[End User] --> Portal[AWS Access Portal]
-  Portal -->|SAML Redirect| Okta[Okta IdP]
+  Portal -->|SP-initiated SAML| Okta[Okta IdP]
   Okta -->|SAML Assertion| IC[AWS IAM Identity Center]
 
   OktaUsers[Okta Users] -->|SCIM| IC
@@ -27,6 +27,7 @@ flowchart LR
 
   IC --> PS[Permission Sets]
   PS --> Roles[AWS Account Roles]
+
 🔁 Identity Planes
 1️⃣ Authentication (SAML)
 
