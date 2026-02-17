@@ -13,182 +13,181 @@ This project demonstrates federated authentication and automated identity lifecy
 This lab simulates a real-world enterprise implementation of centralized identity governance across cloud platforms.
 
 ---
+
 ## Architecture
 
 ```mermaid
 flowchart LR
   User[End User] --> Portal[AWS Access Portal]
-  Portal --> Okta[Okta IdP]
-  Okta --> IC[AWS IAM Identity Center]
-  OktaUsers[Okta Users] --> IC
-  OktaGroups[Okta Groups] --> IC
+  Portal -->|SP-initiated SAML| Okta[Okta IdP]
+  Okta -->|SAML Assertion| IC[AWS IAM Identity Center]
+
+  OktaUsers[Okta Users] -->|SCIM| IC
+  OktaGroups[Okta Groups] -->|SCIM| IC
+
   IC --> PS[Permission Sets]
   PS --> Roles[AWS Account Roles]
+```
 
+---
 
-External IdP configured in IAM Identity Center
+## 1️⃣ Authentication (SAML)
 
-Okta metadata uploaded to AWS
+- External IdP configured in IAM Identity Center  
+- Okta metadata uploaded to AWS  
+- NameID format set to `EmailAddress`  
+- SP-initiated login used for stability  
 
-NameID format set to EmailAddress
+---
 
-SP-initiated login used for stability
-
-2️⃣ Provisioning (SCIM)
+## 2️⃣ Provisioning (SCIM)
 
 Configured in:
 
-AWS → IAM Identity Center → Settings → Automatic Provisioning
-Okta → AWS IAM Identity Center App → Provisioning
+- AWS → IAM Identity Center → Settings → Automatic Provisioning  
+- Okta → AWS IAM Identity Center App → Provisioning  
 
 Enabled:
 
-Create Users
-
-Update User Attributes
-
-Deactivate Users
-
-Push Groups
+- Create Users  
+- Update User Attributes  
+- Deactivate Users  
+- Push Groups  
 
 Result:
 
-Users automatically created in AWS
+- Users automatically created in AWS  
+- Groups automatically created in AWS  
+- Membership synchronized  
+- Deactivation enforced automatically  
 
-Groups automatically created in AWS
+---
 
-Membership synchronized
+## 3️⃣ Authorization (RBAC)
 
-Deactivation enforced automatically
+### Okta Groups
 
-3️⃣ Authorization (RBAC)
-Okta Groups
+- `aws-ic-admins`  
+- `aws-ic-dev`  
+- `aws-ic-readonly`  
 
-aws-ic-admins
+### AWS Permission Sets
 
-aws-ic-dev
+| Permission Set | AWS Managed Policy |
+|---|---|
+| PS-Admin | AdministratorAccess |
+| PS-Developer | PowerUserAccess |
+| PS-ReadOnly | ReadOnlyAccess |
 
-aws-ic-readonly
+### Group → Permission Set Mapping
 
-AWS Permission Sets
-Permission Set	AWS Managed Policy
-PS-Admin	AdministratorAccess
-PS-Developer	PowerUserAccess
-PS-ReadOnly	ReadOnlyAccess
-Group → Permission Set Mapping
-Okta Group	AWS Permission Set
-aws-ic-admins	PS-Admin
-aws-ic-dev	PS-Developer
-aws-ic-readonly	PS-ReadOnly
+| Okta Group | AWS Permission Set |
+|---|---|
+| aws-ic-admins | PS-Admin |
+| aws-ic-dev | PS-Developer |
+| aws-ic-readonly | PS-ReadOnly |
 
 Each group is assigned exactly one permission set per account.
 
-🧪 Validation
-✅ User Provisioning
+---
 
-Created test user in Okta
+## 🧪 Validation
 
-Assigned AWS IAM Identity Center application
+### ✅ User Provisioning
 
-Added user to aws-ic-dev group
+Steps performed:
 
-Observed:
-
-User automatically created in AWS
-
-“Created by: SCIM” displayed in AWS
-
-Group membership synchronized
-
-Developer role visible in AWS Access Portal
-
-✅ Deprovisioning
-
-User deactivated in Okta
+- Created test user in Okta  
+- Assigned AWS IAM Identity Center application  
+- Added user to `aws-ic-dev` group  
 
 Observed:
 
-User disabled in AWS IAM Identity Center
+- User automatically created in AWS  
+- “Created by: SCIM” displayed in AWS  
+- Group membership synchronized  
+- Developer role visible in AWS Access Portal  
 
-AWS account access revoked automatically
+---
 
-⚠ Troubleshooting & Lessons Learned
-SAML Rate Limiting (429 Errors)
+### ✅ Deprovisioning
 
-Cause:
+Steps performed:
 
-Repeated direct hits to /sso/saml endpoint
+- User deactivated in Okta  
 
-Rapid retry loops during testing
+Observed:
 
-Resolution:
+- User disabled in AWS IAM Identity Center  
+- AWS account access revoked automatically  
 
-Use SP-initiated login via AWS access portal
+---
 
-Avoid direct navigation to Okta SAML endpoint
+## ⚠ Troubleshooting & Lessons Learned
 
-Allow rate limit window to clear
-
-400 Bad SAML Request
-
-Cause:
-
-Direct navigation to /sso/saml without proper RelayState
-
-Resolution:
-
-Always initiate login from AWS Access Portal URL
-
-Infinite Loading / Role Not Displayed
+### SAML Rate Limiting (429 Errors)
 
 Cause:
-
-Multiple permission sets assigned to a single group
+- Repeated direct hits to `/sso/saml` endpoint  
+- Rapid retry loops during testing  
 
 Resolution:
+- Use SP-initiated login via AWS access portal  
+- Avoid direct navigation to Okta SAML endpoint  
+- Allow rate limit window to clear  
 
-Enforce 1 group → 1 permission set mapping
+---
 
-🧠 Identity Engineering Concepts Demonstrated
+### 400 Bad SAML Request
 
-Separation of authentication and provisioning planes
+Cause:
+- Direct navigation to `/sso/saml` without proper `RelayState`  
 
-SCIM as identity lifecycle data plane
+Resolution:
+- Always initiate login from AWS Access Portal URL  
 
-SAML as federated authentication mechanism
+---
 
-Centralized RBAC using group mapping
+### Infinite Loading / Role Not Displayed
 
-Just-in-time AWS role assumption
+Cause:
+- Multiple permission sets assigned to a single group  
 
-Automated offboarding enforcement
+Resolution:
+- Enforce 1 group → 1 permission set mapping  
 
-Principle of least privilege
+---
 
-🔒 Security Considerations
+## 🧠 Identity Engineering Concepts Demonstrated
 
-No manually created IAM users in AWS
+- Separation of authentication and provisioning planes  
+- SCIM as identity lifecycle data plane  
+- SAML as federated authentication mechanism  
+- Centralized RBAC using group mapping  
+- Just-in-time AWS role assumption  
+- Automated offboarding enforcement  
+- Principle of least privilege  
 
-Centralized identity source (Okta)
+---
 
-Immediate access revocation upon deactivation
+## 🔒 Security Considerations
 
-Reduced credential sprawl
+- No manually created IAM users in AWS  
+- Centralized identity source (Okta)  
+- Immediate access revocation upon deactivation  
+- Reduced credential sprawl  
+- Role-based access control enforcement  
 
-Role-based access control enforcement
+---
 
-🚀 Outcome
+## 🚀 Outcome
 
 Successfully implemented:
 
-Federated SSO
-
-Automated user provisioning
-
-Automated group synchronization
-
-Automated role assignment
-
-Automated deprovisioning
+- Federated SSO  
+- Automated user provisioning  
+- Automated group synchronization  
+- Automated role assignment  
+- Automated deprovisioning  
 
 This architecture mirrors enterprise identity federation patterns used in production cloud environments.
