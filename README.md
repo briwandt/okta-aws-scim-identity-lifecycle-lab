@@ -1,13 +1,20 @@
-# Okta → AWS IAM Identity Center SCIM Identity Lifecycle Lab
+# 🔐 Okta → AWS IAM Identity Center SCIM Identity Lifecycle Lab
 
 ## Overview
-This project demonstrates federated authentication and automated identity lifecycle management between Okta and AWS IAM Identity Center using **SAML 2.0** and **SCIM 2.0**.
 
-The implementation enforces centralized identity governance, role-based access control (RBAC), and automated provisioning/deprovisioning across cloud environments.
+This project demonstrates federated authentication and automated identity lifecycle management between **Okta (Identity Provider)** and **AWS IAM Identity Center (Service Provider)** using:
+
+- **SAML 2.0** for authentication  
+- **SCIM 2.0** for automated provisioning  
+- **Group-based RBAC**  
+- **Permission set mapping**  
+- **Automated deprovisioning**
+
+This lab simulates a real-world enterprise implementation of centralized identity governance across cloud platforms.
 
 ---
 
-## Architecture
+## 🏗 Architecture
 
 ```mermaid
 flowchart LR
@@ -19,53 +26,177 @@ flowchart LR
     OktaGroups[Okta Groups] -->|SCIM| Identity
 
     Identity --> PermissionSets[Permission Sets]
-    PermissionSets --> AWSAccount[AWS Account]
-mplementation Summary
-Authentication
+    PermissionSets --> AWSAccount[AWS Account Roles]
+🔁 Identity Planes
+1️⃣ Authentication (SAML)
 
-SAML federation configured between Okta and AWS IAM Identity Center
+Flow:
 
-SP-initiated login via AWS access portal
+AWS Portal → Redirect to Okta → Authenticate → SAML Assertion → AWS
 
-Email-based NameID mapping
+External IdP configured in IAM Identity Center
 
-Provisioning
+Okta metadata uploaded to AWS
 
-SCIM endpoint enabled in AWS
+NameID format set to EmailAddress
 
-API integration configured in Okta
+SP-initiated login used for stability
 
-Automatic user creation, update, and deactivation enabled
+2️⃣ Provisioning (SCIM)
 
-Group push enabled
+Configured in:
 
-Authorization
+AWS → IAM Identity Center → Settings → Automatic Provisioning
+Okta → AWS IAM Identity Center App → Provisioning
 
-Okta Groups mapped to AWS Permission Sets:
+Enabled:
 
+Create Users
+
+Update User Attributes
+
+Deactivate Users
+
+Push Groups
+
+Result:
+
+Users automatically created in AWS
+
+Groups automatically created in AWS
+
+Membership synchronized
+
+Deactivation enforced automatically
+
+3️⃣ Authorization (RBAC)
+Okta Groups
+
+aws-ic-admins
+
+aws-ic-dev
+
+aws-ic-readonly
+
+AWS Permission Sets
+Permission Set	AWS Managed Policy
+PS-Admin	AdministratorAccess
+PS-Developer	PowerUserAccess
+PS-ReadOnly	ReadOnlyAccess
+Group → Permission Set Mapping
 Okta Group	AWS Permission Set
 aws-ic-admins	PS-Admin
 aws-ic-dev	PS-Developer
 aws-ic-readonly	PS-ReadOnly
 
-Permission sets are then assigned to AWS account(s) to grant access via IAM Identity Center.
+Each group is assigned exactly one permission set per account.
 
-Validation
+🧪 Validation
+✅ User Provisioning
 
-User created in Okta → automatically provisioned in AWS (Created by: SCIM)
+Created test user in Okta
 
-Group membership synced to AWS
+Assigned AWS IAM Identity Center application
 
-Role displayed in AWS access portal
+Added user to aws-ic-dev group
 
-User deactivation in Okta revoked AWS access automatically
+Observed:
 
-Lessons Learned
+User automatically created in AWS
 
-Prefer SP-initiated login (AWS access portal URL) when testing SAML flows.
+“Created by: SCIM” displayed in AWS
 
-Avoid direct navigation to Okta /sso/saml endpoints (can produce “Bad SAML request”).
+Group membership synchronized
 
-Keep one permission set per group to avoid role ambiguity.
+Developer role visible in AWS Access Portal
 
-SCIM (provisioning) and SAML (authentication) are separate planes—both must be correct.
+✅ Deprovisioning
+
+User deactivated in Okta
+
+Observed:
+
+User disabled in AWS IAM Identity Center
+
+AWS account access revoked automatically
+
+⚠ Troubleshooting & Lessons Learned
+SAML Rate Limiting (429 Errors)
+
+Cause:
+
+Repeated direct hits to /sso/saml endpoint
+
+Rapid retry loops during testing
+
+Resolution:
+
+Use SP-initiated login via AWS access portal
+
+Avoid direct navigation to Okta SAML endpoint
+
+Allow rate limit window to clear
+
+400 Bad SAML Request
+
+Cause:
+
+Direct navigation to /sso/saml without proper RelayState
+
+Resolution:
+
+Always initiate login from AWS Access Portal URL
+
+Infinite Loading / Role Not Displayed
+
+Cause:
+
+Multiple permission sets assigned to a single group
+
+Resolution:
+
+Enforce 1 group → 1 permission set mapping
+
+🧠 Identity Engineering Concepts Demonstrated
+
+Separation of authentication and provisioning planes
+
+SCIM as identity lifecycle data plane
+
+SAML as federated authentication mechanism
+
+Centralized RBAC using group mapping
+
+Just-in-time AWS role assumption
+
+Automated offboarding enforcement
+
+Principle of least privilege
+
+🔒 Security Considerations
+
+No manually created IAM users in AWS
+
+Centralized identity source (Okta)
+
+Immediate access revocation upon deactivation
+
+Reduced credential sprawl
+
+Role-based access control enforcement
+
+🚀 Outcome
+
+Successfully implemented:
+
+Federated SSO
+
+Automated user provisioning
+
+Automated group synchronization
+
+Automated role assignment
+
+Automated deprovisioning
+
+This architecture mirrors enterprise identity federation patterns used in production cloud environments.
