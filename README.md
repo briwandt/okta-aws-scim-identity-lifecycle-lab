@@ -15,7 +15,6 @@ This lab simulates a real-world enterprise implementation of centralized identit
 ---
 
 ## Architecture
-
 ```mermaid
 flowchart LR
   User[End User] --> Portal[AWS Access Portal]
@@ -27,7 +26,6 @@ flowchart LR
 
   IC --> PS[Permission Sets]
   PS --> Roles[AWS Account Roles]
-
 🔁 Identity Planes
 1️⃣ Authentication (SAML)
 
