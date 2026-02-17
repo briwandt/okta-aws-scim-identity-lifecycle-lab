@@ -1,8 +1,7 @@
 # Okta → AWS IAM Identity Center SCIM Identity Lifecycle Lab
 
 ## Overview
-
-This project demonstrates federated authentication and automated identity lifecycle management between Okta and AWS IAM Identity Center using SAML 2.0 and SCIM 2.0.
+This project demonstrates federated authentication and automated identity lifecycle management between Okta and AWS IAM Identity Center using **SAML 2.0** and **SCIM 2.0**.
 
 The implementation enforces centralized identity governance, role-based access control (RBAC), and automated provisioning/deprovisioning across cloud environments.
 
@@ -16,12 +15,12 @@ flowchart LR
     AWS --> Okta[SAML Authentication]
     Okta --> Identity[AWS IAM Identity Center]
 
-    OktaUsers -->|SCIM| Identity
-    OktaGroups -->|SCIM| Identity
+    OktaUsers[Okta Users] -->|SCIM| Identity
+    OktaGroups[Okta Groups] -->|SCIM| Identity
 
-    Identity --> PermissionSets
-    PermissionSets --> AWSAccount
-Implementation Summary
+    Identity --> PermissionSets[Permission Sets]
+    PermissionSets --> AWSAccount[AWS Account]
+mplementation Summary
 Authentication
 
 SAML federation configured between Okta and AWS IAM Identity Center
@@ -44,12 +43,12 @@ Authorization
 
 Okta Groups mapped to AWS Permission Sets:
 
-Group	Permission Set
+Okta Group	AWS Permission Set
 aws-ic-admins	PS-Admin
 aws-ic-dev	PS-Developer
 aws-ic-readonly	PS-ReadOnly
 
-Permission sets mapped to AWS account roles.
+Permission sets are then assigned to AWS account(s) to grant access via IAM Identity Center.
 
 Validation
 
@@ -60,12 +59,13 @@ Group membership synced to AWS
 Role displayed in AWS access portal
 
 User deactivation in Okta revoked AWS access automatically
+
 Lessons Learned
 
-Always use SP-initiated SAML login to avoid rate limiting.
+Prefer SP-initiated login (AWS access portal URL) when testing SAML flows.
 
-Avoid direct navigation to /sso/saml endpoint.
+Avoid direct navigation to Okta /sso/saml endpoints (can produce “Bad SAML request”).
 
-Enforce one permission set per group to prevent role ambiguity.
+Keep one permission set per group to avoid role ambiguity.
 
-SCIM and SAML operate as separate identity planes.
+SCIM (provisioning) and SAML (authentication) are separate planes—both must be correct.
