@@ -92,11 +92,12 @@ Each group is assigned exactly one permission set per account.
 ---
 
 ## 🧪 Validation
+
 ### AWS SCIM Provisioning Enabled
 
 Automatic provisioning enabled in AWS IAM Identity Center:
 
-![AWS SCIM Enabled](./images/aws-scim-enabled.png)
+![AWS SCIM Enabled](images/aws-scim-enabled.png)
 
 
 ### ✅ User Provisioning
