@@ -64,6 +64,11 @@ Result:
 ---
 
 ## 3️⃣ Authorization (RBAC)
+### Group to Permission Set Mapping
+
+RBAC mapping enforced in AWS IAM Identity Center:
+
+![Permission Set Mapping](images/aws-permission-set-mapping.png)
 
 ### Okta Groups
 
