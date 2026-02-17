@@ -13,22 +13,22 @@ This project demonstrates federated authentication and automated identity lifecy
 This lab simulates a real-world enterprise implementation of centralized identity governance across cloud platforms.
 
 ---
-
 ## Architecture
 
 ```mermaid
 flowchart LR
-  User[End User] --> Portal[AWS Access Portal]
-  Portal -->|SP-initiated SAML| Okta[Okta IdP]
-  Okta -->|SAML Assertion| IC[AWS IAM Identity Center]
+    User[End User] --> Portal[AWS Access Portal]
+    Portal -->|SP-initiated SAML| Okta[Okta IdP]
+    Okta -->|SAML Assertion| IC[AWS IAM Identity Center]
 
-  OktaUsers[Okta Users] -->|SCIM| IC
-  OktaGroups[Okta Groups] -->|SCIM| IC
+    OktaUsers[Okta Users] -->|SCIM| IC
+    OktaGroups[Okta Groups] -->|SCIM| IC
 
-  IC --> PS[Permission Sets]
-  PS --> Roles[AWS Account Roles]
+    IC --> PS[Permission Sets]
+    PS --> Roles[AWS Account Roles]
+```
 
-Flow:
+### Flow
 
 AWS Portal → Redirect to Okta → Authenticate → SAML Assertion → AWS
 
